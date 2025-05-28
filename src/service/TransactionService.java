@@ -12,11 +12,11 @@ public class TransactionService {
         this.transactionDAO = new TransactionDAO();
     }
 
-    public List<AccTransactions> getAllTransactions(int accountId) throws SQLException {
-        return transactionDAO.findByAccountId(accountId);
+    public List<AccTransactions> getAccountTransactions(int accountId) throws SQLException {
+        return transactionDAO.getAllTransactions(accountId);
     }
 
     public List<AccTransactions> getTransactionsByType(int accountId, String type) throws SQLException {
         return transactionDAO.findByAccountIdAndType(accountId, type);
     }
-} 
+}

@@ -6,7 +6,6 @@ import java.util.Properties;
 import java.io.InputStream;
 
 public class DBConnection {
-    private static Connection connection;
     private static Properties props;
 
     private static void loadProperties() {
@@ -26,33 +25,16 @@ public class DBConnection {
         try {
             loadProperties();
             
-            // Check if connection is closed or null
-            if (connection == null || connection.isClosed()) {
-                String url = props.getProperty("db.url");
-                String user = props.getProperty("db.user");
-                String password = props.getProperty("db.password");
-                String driver = props.getProperty("db.driver");
-                
-                Class.forName(driver);
-                connection = DriverManager.getConnection(url, user, password);
-            }
-            return connection;
+            String url = props.getProperty("db.url");
+            String user = props.getProperty("db.user");
+            String password = props.getProperty("db.password");
+            String driver = props.getProperty("db.driver");
+            
+            Class.forName(driver);
+            return DriverManager.getConnection(url, user, password);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Failed to establish database connection", e);
-        }
-    }
-
-    public static void closeConnection() {
-        if (connection != null) {
-            try {
-                if (!connection.isClosed()) {
-                    connection.close();
-                }
-                connection = null;
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
     }
 }

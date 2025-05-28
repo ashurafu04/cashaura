@@ -98,6 +98,7 @@ public class ClientController {
         dashboardView.addTransferListener(e -> handleTransferClick());
         dashboardView.addHistoryListener(e -> handleHistoryClick());
         dashboardView.addBeneficiariesListener(e -> handleManageBeneficiaries());
+        dashboardView.addSavingAccountListener(e -> handleSavingAccount());
         dashboardView.addLogoutListener(e -> handleLogout());
         
         // Enable/disable buttons based on account existence
@@ -105,6 +106,7 @@ public class ClientController {
         dashboardView.setTransferEnabled(hasAccount);
         dashboardView.setHistoryEnabled(hasAccount);
         dashboardView.setBeneficiariesEnabled(hasAccount);
+        dashboardView.setSavingAccountEnabled(hasAccount);
         
         dashboardView.setVisible(true);
         loginView.setVisible(false);
@@ -175,6 +177,13 @@ public class ClientController {
             beneficiaryView.setVisible(true);
         } else {
             JOptionPane.showMessageDialog(dashboardView, "You need an account to manage beneficiaries.");
+        }
+    }
+
+    private void handleSavingAccount() {
+        if (loggedInClient != null) {
+            SavingAccountController savingController = new SavingAccountController(loggedInClient.getId());
+            savingController.showView();
         }
     }
 

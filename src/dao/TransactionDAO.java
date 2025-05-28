@@ -49,6 +49,26 @@ public class TransactionDAO {
         return transactions;
     }
 
+    public List<AccTransactions> getAllTransactions(int accountId) throws SQLException {
+        String sql = "SELECT * FROM ACC_TRANSACTIONS WHERE id_account = ? OR id_recipient = ? " +
+                    "ORDER BY transaction_date DESC";
+        List<AccTransactions> transactions = new ArrayList<>();
+        
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, accountId);
+            stmt.setInt(2, accountId);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    transactions.add(mapResultSetToTransaction(rs));
+                }
+            }
+        }
+        return transactions;
+    }
+
     private AccTransactions mapResultSetToTransaction(ResultSet rs) throws SQLException {
         return new AccTransactions(
             rs.getInt("id_transaction"),
@@ -59,4 +79,4 @@ public class TransactionDAO {
             rs.getInt("id_recipient")
         );
     }
-} 
+}

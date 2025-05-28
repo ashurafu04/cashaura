@@ -14,6 +14,7 @@ public class DashboardView extends JFrame {
     private JButton transferButton;
     private JButton historyButton;
     private JButton beneficiariesButton;
+    private JButton savingAccountButton;
     private JButton logoutButton;
     // High-contrast color scheme
     private final Color darkBlue = new Color(13, 26, 38); // #0D1A26
@@ -47,16 +48,23 @@ public class DashboardView extends JFrame {
         mainPanel.setLayout(new BorderLayout(0, 0));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
-        // Header with welcome
+        // Header with welcome and logout
         JPanel headerPanel = new JPanel();
         headerPanel.setOpaque(false);
-        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setLayout(new BorderLayout());
         headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 32, 0));
+
+        // Welcome label on the left
         welcomeLabel = new JLabel("Welcome!");
         welcomeLabel.setFont(titleFont);
         welcomeLabel.setForeground(darkBlue);
-        welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        headerPanel.add(welcomeLabel);
+        headerPanel.add(welcomeLabel, BorderLayout.WEST);
+
+        // Logout button on the right
+        logoutButton = createNavButton("Logout", true);
+        logoutButton.setPreferredSize(new Dimension(120, 40));
+        headerPanel.add(logoutButton, BorderLayout.EAST);
+
         mainPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Center: Account summary card
@@ -101,7 +109,7 @@ public class DashboardView extends JFrame {
         transferButton = createNavButton("Transfer");
         historyButton = createNavButton("History");
         beneficiariesButton = createNavButton("Beneficiaries");
-        logoutButton = createNavButton("Logout", true);
+        savingAccountButton = createNavButton("Saving Account");
 
         navigationPanel.add(accountButton);
         navigationPanel.add(Box.createHorizontalStrut(28));
@@ -111,7 +119,7 @@ public class DashboardView extends JFrame {
         navigationPanel.add(Box.createHorizontalStrut(28));
         navigationPanel.add(beneficiariesButton);
         navigationPanel.add(Box.createHorizontalStrut(28));
-        navigationPanel.add(logoutButton);
+        navigationPanel.add(savingAccountButton);
 
         mainPanel.add(navigationPanel, BorderLayout.SOUTH);
         add(mainPanel);
@@ -124,29 +132,20 @@ public class DashboardView extends JFrame {
     private JButton createNavButton(String text, boolean isLogout) {
         JButton button = new JButton(text);
         button.setFont(navFont);
-        button.setPreferredSize(new Dimension(160, 48));
-        button.setMaximumSize(new Dimension(160, 48));
+        if (isLogout) {
+            button.setBackground(new Color(220, 53, 69)); // Bootstrap red
+            button.setForeground(Color.WHITE);
+        } else {
+            button.setBackground(isLogout ? Color.WHITE : darkBlue);
+            button.setForeground(isLogout ? darkBlue : Color.WHITE);
+        }
         button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createCompoundBorder(
+            new LineBorder(isLogout ? new Color(220, 53, 69) : darkBlue, 2, true),
+            BorderFactory.createEmptyBorder(10, 32, 10, 32)
+        ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setOpaque(true);
-        button.setContentAreaFilled(true);
-        button.setBorderPainted(true);
-        if (isLogout) {
-            button.setBackground(Color.WHITE);
-            button.setForeground(new Color(211, 47, 47)); // Red for logout
-            button.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(new Color(211, 47, 47), 2, true),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-            ));
-        } else {
-            button.setBackground(darkBlue);
-            button.setForeground(Color.WHITE);
-            button.setBorder(BorderFactory.createCompoundBorder(
-                new LineBorder(darkBlue, 2, true),
-                BorderFactory.createEmptyBorder(10, 10, 10, 10)
-            ));
-        }
-        // Custom disabled state
         button.setUI(new javax.swing.plaf.basic.BasicButtonUI() {
             @Override
             public void paint(Graphics g, JComponent c) {
@@ -156,7 +155,7 @@ public class DashboardView extends JFrame {
                     button.setBackground(new Color(230, 235, 245));
                     button.setBorder(BorderFactory.createCompoundBorder(
                         new LineBorder(darkBlue, 2, true),
-                        BorderFactory.createEmptyBorder(10, 10, 10, 10)
+                        BorderFactory.createEmptyBorder(10, 32, 10, 32)
                     ));
                 }
             }
@@ -194,6 +193,9 @@ public class DashboardView extends JFrame {
     public void addBeneficiariesListener(ActionListener listener) {
         beneficiariesButton.addActionListener(listener);
     }
+    public void addSavingAccountListener(ActionListener listener) {
+        savingAccountButton.addActionListener(listener);
+    }
     public void addLogoutListener(ActionListener listener) {
         logoutButton.addActionListener(listener);
     }
@@ -205,5 +207,8 @@ public class DashboardView extends JFrame {
     }
     public void setBeneficiariesEnabled(boolean enabled) {
         beneficiariesButton.setEnabled(enabled);
+    }
+    public void setSavingAccountEnabled(boolean enabled) {
+        savingAccountButton.setEnabled(enabled);
     }
 } 

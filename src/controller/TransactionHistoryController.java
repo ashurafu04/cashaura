@@ -57,7 +57,7 @@ public class TransactionHistoryController {
                     transactions = transactionService.getTransactionsByType(currentAccount.getId(), "WITHDRAWAL");
                     break;
                 default:
-                    transactions = transactionService.getAllTransactions(currentAccount.getId());
+                    transactions = transactionService.getAccountTransactions(currentAccount.getId());
                     break;
             }
 
@@ -87,4 +87,4 @@ public class TransactionHistoryController {
     public void showView() {
         view.setVisible(true);
     }
-} 
+}

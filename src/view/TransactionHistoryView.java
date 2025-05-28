@@ -205,4 +205,17 @@ public class TransactionHistoryView extends JFrame {
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
-} 
+    private JTable createTransactionsTable(List<AccTransactions> transactions) {
+        String[] columnNames = {"Date", "Amount", "Type"};
+        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
+        
+        for (AccTransactions t : transactions) {
+            model.addRow(new Object[]{
+                t.getTransactionDate(),
+                t.getAmount(),
+                t.getTransactionType()
+            });
+        }
+        return new JTable(model);
+    }
+}
