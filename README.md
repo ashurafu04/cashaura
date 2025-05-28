@@ -14,7 +14,6 @@
 ## 📦 Prerequisites
 
 * **Java 11** or higher
-* **Maven 3.6+**
 * **MySQL 8.0+**
 
 ## ⚙️ Setup Instructions
