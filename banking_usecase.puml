@@ -1,0 +1,62 @@
+@startuml Banking System Use Case
+
+skinparam actorStyle awesome
+left to right direction
+
+' Actors
+actor "Client" as client
+actor "System" as system
+
+' Use cases rectangle
+rectangle "Banking System" {
+    ' Account Management
+    usecase "Create Saving Account" as UC1
+    usecase "View Account Details" as UC2
+    usecase "List Saving Accounts" as UC3
+    usecase "Close Account" as UC4
+    
+    ' Transaction Management
+    usecase "Make Transfer" as UC5
+    usecase "View Transaction History" as UC6
+    usecase "Manage Beneficiaries" as UC7
+    
+    ' Saving Account Specific
+    usecase "Calculate Interest" as UC8
+    usecase "Update Interest Rate" as UC9
+    usecase "Apply Interest" as UC10
+    
+    ' Account Operations
+    usecase "Check Balance" as UC11
+    usecase "Deposit Money" as UC12
+    usecase "Withdraw Money" as UC13
+}
+
+' Client relationships
+client --> UC1
+client --> UC2
+client --> UC3
+client --> UC4
+client --> UC5
+client --> UC6
+client --> UC7
+client --> UC11
+client --> UC12
+client --> UC13
+
+' System relationships
+system --> UC8
+system --> UC9
+system --> UC10
+
+' Include relationships
+UC5 ..> UC7 : <<include>>
+UC1 ..> UC11 : <<include>>
+UC8 ..> UC10 : <<include>>
+
+' Extend relationships
+UC6 .> UC2 : <<extend>>
+UC12 .> UC6 : <<extend>>
+UC13 .> UC6 : <<extend>>
+UC5 .> UC6 : <<extend>>
+
+@enduml 

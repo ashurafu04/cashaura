@@ -37,7 +37,7 @@ public class SavingAccountView extends JFrame {
     private void initializeUI() {
         setTitle("Cashaura - Saving Account");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(520, 600);
+        setSize(600, 700);
         setLocationRelativeTo(null);
         setResizable(false);
 
@@ -49,7 +49,7 @@ public class SavingAccountView extends JFrame {
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        mainPanel.setLayout(new BorderLayout(0, 0));
+        mainPanel.setLayout(new BorderLayout(0, 20));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
         // Title
@@ -59,27 +59,24 @@ public class SavingAccountView extends JFrame {
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel, BorderLayout.NORTH);
 
-        // Form card
-        JPanel formPanel = new JPanel();
-        formPanel.setOpaque(false);
-        formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(darkBlue, 2, true),
-            BorderFactory.createEmptyBorder(28, 28, 28, 28)
-        ));
-        formPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        formPanel.setMaximumSize(new Dimension(360, 400));
+        // Center panel to hold form and details
+        JPanel centerPanel = new JPanel();
+        centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
+        centerPanel.setOpaque(false);
 
         // Account Details Section
         JPanel detailsPanel = new JPanel();
         detailsPanel.setOpaque(false);
         detailsPanel.setLayout(new BoxLayout(detailsPanel, BoxLayout.Y_AXIS));
-        detailsPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(darkBlue),
-            "Account Details",
-            TitledBorder.LEFT,
-            TitledBorder.TOP,
-            mainFont.deriveFont(Font.BOLD)
+        detailsPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(darkBlue),
+                "Account Details",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                mainFont.deriveFont(Font.BOLD)
+            ),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
 
         balanceLabel = new JLabel("Current Balance: MAD 0.00");
@@ -96,31 +93,37 @@ public class SavingAccountView extends JFrame {
         lastCalculationLabel.setFont(mainFont);
         detailsPanel.add(lastCalculationLabel);
 
-        formPanel.add(detailsPanel);
-        formPanel.add(Box.createVerticalStrut(20));
+        centerPanel.add(detailsPanel);
+        centerPanel.add(Box.createVerticalStrut(20));
 
         // New Account Section
         JPanel newAccountPanel = new JPanel();
         newAccountPanel.setOpaque(false);
         newAccountPanel.setLayout(new BoxLayout(newAccountPanel, BoxLayout.Y_AXIS));
-        newAccountPanel.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(darkBlue),
-            "Create New Account",
-            TitledBorder.LEFT,
-            TitledBorder.TOP,
-            mainFont.deriveFont(Font.BOLD)
+        newAccountPanel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(darkBlue),
+                "Create New Account",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                mainFont.deriveFont(Font.BOLD)
+            ),
+            BorderFactory.createEmptyBorder(15, 15, 15, 15)
         ));
 
         addLabeledTextField(newAccountPanel, "Initial Deposit (MAD):", initialDepositField = new JTextField());
         addLabeledTextField(newAccountPanel, "Interest Rate (%):", interestRateField = new JTextField());
 
-        formPanel.add(newAccountPanel);
-        formPanel.add(Box.createVerticalStrut(20));
+        centerPanel.add(newAccountPanel);
+        centerPanel.add(Box.createVerticalStrut(20));
+
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
 
         // Buttons Panel
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
+        buttonPanel.setLayout(new GridLayout(2, 2, 10, 10));
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 20, 0));
 
         createButton = createStyledButton("Create Account", true);
         calculateInterestButton = createStyledButton("Calculate Interest", false);
@@ -128,46 +131,51 @@ public class SavingAccountView extends JFrame {
         backButton = createStyledButton("Back", false);
 
         buttonPanel.add(createButton);
-        buttonPanel.add(Box.createHorizontalStrut(10));
         buttonPanel.add(calculateInterestButton);
-        buttonPanel.add(Box.createHorizontalStrut(10));
         buttonPanel.add(closeAccountButton);
-        buttonPanel.add(Box.createHorizontalStrut(10));
         buttonPanel.add(backButton);
 
-        formPanel.add(buttonPanel);
-
-        mainPanel.add(formPanel, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
         add(mainPanel);
     }
 
     private void addLabeledTextField(JPanel panel, String label, JTextField field) {
+        JPanel fieldPanel = new JPanel();
+        fieldPanel.setOpaque(false);
+        fieldPanel.setLayout(new BoxLayout(fieldPanel, BoxLayout.Y_AXIS));
+        fieldPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
         JLabel jLabel = new JLabel(label);
         jLabel.setFont(mainFont);
         jLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        panel.add(jLabel);
+        fieldPanel.add(jLabel);
+        fieldPanel.add(Box.createVerticalStrut(5));
+
         field.setFont(mainFont);
         field.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
-            BorderFactory.createEmptyBorder(6, 8, 6, 8)
+            BorderFactory.createEmptyBorder(8, 10, 8, 10)
         ));
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 36));
-        panel.add(field);
-        panel.add(Box.createVerticalStrut(10));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        fieldPanel.add(field);
+        
+        panel.add(fieldPanel);
+        panel.add(Box.createVerticalStrut(15));
     }
 
     private JButton createStyledButton(String text, boolean isPrimary) {
         JButton button = new JButton(text);
         button.setFont(mainFont.deriveFont(Font.BOLD));
-        button.setBackground(isPrimary ? darkBlue : Color.WHITE);
-        button.setForeground(isPrimary ? Color.WHITE : darkBlue);
+        button.setBackground(isPrimary ? new Color(25, 118, 210) : Color.WHITE); // Primary blue for create button
+        button.setForeground(darkBlue); // Always black text for all buttons
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(darkBlue, 2, true),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
+            BorderFactory.createEmptyBorder(12, 24, 12, 24)
         ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setOpaque(true);
+        button.setPreferredSize(new Dimension(200, 45));
         return button;
     }
 

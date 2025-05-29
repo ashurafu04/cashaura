@@ -84,9 +84,17 @@ public class ClientController {
         if (loggedInClient != null) {
             account = accountService.getFirstAccountByClientId(loggedInClient.getId());
             if (account != null) {
-                summary = String.format("Account Number: %s\nType: %s\nBalance: %s\nOwner: %s %s",
-                    account.getRib(), account.getType(), account.getBalance().toPlainString(),
-                    loggedInClient.getFirstname(), loggedInClient.getLastname());
+                summary = String.format("<html><div style='font-family: Segoe UI; font-size: 16px; line-height: 2.0;'>" +
+                    "<b>Account Number:</b> %s<br>" +
+                    "<b>Type:</b> %s<br>" +
+                    "<b>Balance:</b> MAD %s<br>" +
+                    "<b>Owner:</b> %s %s" +
+                    "</div></html>",
+                    account.getRib(), 
+                    account.getType(), 
+                    String.format("%,.2f", account.getBalance().doubleValue()),
+                    loggedInClient.getFirstname(), 
+                    loggedInClient.getLastname());
             }
         }
         dashboardView = new DashboardView();

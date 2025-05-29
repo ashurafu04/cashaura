@@ -9,6 +9,7 @@ public class SavingAccount {
     private BigDecimal interestRate;
     private Date lastInterestCalcDate;
     private Account baseAccount;  // Reference to the base account
+    private java.sql.Timestamp deletedAt;  // Add deletion timestamp field
 
     // Default constructor
     public SavingAccount() {}
@@ -60,6 +61,14 @@ public class SavingAccount {
 
     public void setBaseAccount(Account baseAccount) {
         this.baseAccount = baseAccount;
+    }
+
+    public java.sql.Timestamp getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(java.sql.Timestamp deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     @Override

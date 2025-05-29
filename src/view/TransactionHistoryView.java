@@ -16,7 +16,7 @@ public class TransactionHistoryView extends JFrame {
     private JButton backButton;
     private JComboBox<String> filterComboBox;
     private JPanel mainPanel;
-    // CashAura logo blue
+    // High-contrast color scheme
     private final Color primaryBlue = new Color(25, 118, 210); // #1976D2
     private final Color accentBlue = new Color(100, 181, 246); // #64B5F6
     private final Color darkBlue = new Color(13, 26, 38); // #0D1A26
@@ -182,7 +182,27 @@ public class TransactionHistoryView extends JFrame {
 
     private void adjustTableColumns() {
         if (transactionTable != null) {
-            transactionTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+            TableColumnModel columnModel = transactionTable.getColumnModel();
+            
+            // Date column (fixed width)
+            columnModel.getColumn(0).setPreferredWidth(150);
+            columnModel.getColumn(0).setMinWidth(150);
+            
+            // Type column (fixed width)
+            columnModel.getColumn(1).setPreferredWidth(100);
+            columnModel.getColumn(1).setMinWidth(100);
+            
+            // Description column (flexible, but with minimum)
+            columnModel.getColumn(2).setPreferredWidth(300);
+            columnModel.getColumn(2).setMinWidth(200);
+            
+            // Amount column (fixed width)
+            columnModel.getColumn(3).setPreferredWidth(120);
+            columnModel.getColumn(3).setMinWidth(120);
+            
+            // Status column (fixed width)
+            columnModel.getColumn(4).setPreferredWidth(100);
+            columnModel.getColumn(4).setMinWidth(100);
         }
     }
 
@@ -199,23 +219,21 @@ public class TransactionHistoryView extends JFrame {
         tableModel.setRowCount(0);
     }
     public void addTransaction(Date date, String type, String description, double amount, String status) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        tableModel.addRow(new Object[]{sdf.format(date), type, description, amount, status});
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String formattedDate = date != null ? sdf.format(date) : "N/A";
+        String formattedType = type != null ? type.toUpperCase() : "N/A";
+        String formattedDesc = description != null ? description : "N/A";
+        String formattedStatus = status != null ? status.toUpperCase() : "N/A";
+        
+        tableModel.addRow(new Object[]{
+            formattedDate,
+            formattedType,
+            formattedDesc,
+            amount,
+            formattedStatus
+        });
     }
     public void showError(String message) {
         JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
-    }
-    private JTable createTransactionsTable(List<AccTransactions> transactions) {
-        String[] columnNames = {"Date", "Amount", "Type"};
-        DefaultTableModel model = new DefaultTableModel(columnNames, 0);
-        
-        for (AccTransactions t : transactions) {
-            model.addRow(new Object[]{
-                t.getTransactionDate(),
-                t.getAmount(),
-                t.getTransactionType()
-            });
-        }
-        return new JTable(model);
     }
 }

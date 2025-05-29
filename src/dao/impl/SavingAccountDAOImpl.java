@@ -2,11 +2,13 @@ package dao.impl;
 
 import dao.SavingAccountDAO;
 import model.SavingAccount;
+import model.Account;
 import util.DBConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 public class SavingAccountDAOImpl implements SavingAccountDAO {
     
@@ -43,7 +45,31 @@ public class SavingAccountDAOImpl implements SavingAccountDAO {
             
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    return mapResultSetToSavingAccount(rs);
+                    SavingAccount savingAccount = new SavingAccount();
+                    savingAccount.setIdSavingAccount(rs.getInt("id_saving_account"));
+                    savingAccount.setIdAccount(rs.getInt("id_account"));
+                    savingAccount.setInterestRate(rs.getBigDecimal("interest_rate"));
+                    savingAccount.setLastInterestCalcDate(rs.getDate("last_interest_calc_date"));
+                    
+                    // Create and set the base account
+                    Account baseAccount = new Account();
+                    baseAccount.setId(rs.getInt("id_account"));
+                    baseAccount.setClientId(rs.getInt("id_client"));
+                    baseAccount.setBalance(rs.getBigDecimal("balance"));
+                    baseAccount.setType(rs.getString("type"));
+                    baseAccount.setRib(rs.getString("rib"));
+                    baseAccount.setDeleted(rs.getBoolean("is_deleted"));
+                    
+                    // Handle deleted_at timestamp
+                    java.sql.Timestamp deletedAt = rs.getTimestamp("deleted_at");
+                    if (deletedAt != null) {
+                        baseAccount.setDeletedAt(deletedAt);
+                    }
+                    
+                    // Set the base account in the saving account
+                    savingAccount.setBaseAccount(baseAccount);
+                    
+                    return savingAccount;
                 }
             }
         }
@@ -64,7 +90,31 @@ public class SavingAccountDAOImpl implements SavingAccountDAO {
             
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    savingAccounts.add(mapResultSetToSavingAccount(rs));
+                    SavingAccount savingAccount = new SavingAccount();
+                    savingAccount.setIdSavingAccount(rs.getInt("id_saving_account"));
+                    savingAccount.setIdAccount(rs.getInt("id_account"));
+                    savingAccount.setInterestRate(rs.getBigDecimal("interest_rate"));
+                    savingAccount.setLastInterestCalcDate(rs.getDate("last_interest_calc_date"));
+                    
+                    // Create and set the base account
+                    Account baseAccount = new Account();
+                    baseAccount.setId(rs.getInt("id_account"));
+                    baseAccount.setClientId(rs.getInt("id_client"));
+                    baseAccount.setBalance(rs.getBigDecimal("balance"));
+                    baseAccount.setType(rs.getString("type"));
+                    baseAccount.setRib(rs.getString("rib"));
+                    baseAccount.setDeleted(rs.getBoolean("is_deleted"));
+                    
+                    // Handle deleted_at timestamp
+                    java.sql.Timestamp deletedAt = rs.getTimestamp("deleted_at");
+                    if (deletedAt != null) {
+                        baseAccount.setDeletedAt(deletedAt);
+                    }
+                    
+                    // Set the base account in the saving account
+                    savingAccount.setBaseAccount(baseAccount);
+                    
+                    savingAccounts.add(savingAccount);
                 }
             }
         }
@@ -84,14 +134,18 @@ public class SavingAccountDAOImpl implements SavingAccountDAO {
     }
 
     @Override
-    public void updateInterestRate(int idSavingAccount, double newRate) throws SQLException {
+    public void updateInterestRate(int idSavingAccount, BigDecimal newRate) throws SQLException {
         String sql = "UPDATE SAVING_ACCOUNT SET interest_rate = ? WHERE id_saving_account = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             
-            stmt.setBigDecimal(1, new java.math.BigDecimal(String.valueOf(newRate)));
+            stmt.setBigDecimal(1, newRate);
             stmt.setInt(2, idSavingAccount);
-            stmt.executeUpdate();
+            
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new SQLException("Failed to update interest rate. Saving account not found.");
+            }
         }
     }
 
@@ -103,6 +157,23 @@ public class SavingAccountDAOImpl implements SavingAccountDAO {
             
             stmt.setInt(1, idSavingAccount);
             return stmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public void update(SavingAccount savingAccount) throws SQLException {
+        String sql = "UPDATE SAVING_ACCOUNT SET interest_rate = ?, last_interest_calc_date = ? WHERE id_saving_account = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setBigDecimal(1, savingAccount.getInterestRate());
+            stmt.setDate(2, new java.sql.Date(savingAccount.getLastInterestCalcDate().getTime()));
+            stmt.setInt(3, savingAccount.getIdSavingAccount());
+            
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated == 0) {
+                throw new SQLException("Failed to update saving account. Account not found.");
+            }
         }
     }
 

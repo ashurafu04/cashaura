@@ -78,16 +78,16 @@ public class DashboardView extends JFrame {
         cardPanel.setBackground(Color.WHITE);
         cardPanel.setBorder(BorderFactory.createCompoundBorder(
             new LineBorder(darkBlue, 2, true),
-            BorderFactory.createEmptyBorder(32, 36, 32, 36)
+            BorderFactory.createEmptyBorder(40, 48, 40, 48)
         ));
         cardPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         JLabel cardTitle = new JLabel("Account Summary");
-        cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        cardTitle.setFont(new Font("Segoe UI", Font.BOLD, 24));
         cardTitle.setForeground(darkBlue);
         cardTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         cardPanel.add(cardTitle);
-        cardPanel.add(Box.createVerticalStrut(18));
+        cardPanel.add(Box.createVerticalStrut(24));
 
         accountSummaryLabel = new JLabel();
         accountSummaryLabel.setFont(mainFont);

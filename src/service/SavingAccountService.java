@@ -9,10 +9,17 @@ import java.util.List;
 import java.util.Date;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import util.RIBGenerator;
 
 public class SavingAccountService {
     private final SavingAccountDAO savingAccountDAO;
     private final AccountDAO accountDAO;
+
+    public SavingAccountService() {
+        this.savingAccountDAO = new SavingAccountDAOImpl();
+        this.accountDAO = new AccountDAO();
+    }
 
     public SavingAccountService(SavingAccountDAO savingAccountDAO, AccountDAO accountDAO) {
         this.savingAccountDAO = savingAccountDAO;
@@ -20,17 +27,31 @@ public class SavingAccountService {
     }
 
     public SavingAccount createSavingAccount(int idClient, BigDecimal initialDeposit, BigDecimal interestRate) throws SQLException {
+        if (initialDeposit.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Initial deposit cannot be negative");
+        }
+        if (interestRate.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Interest rate cannot be negative");
+        }
+
         // Create base account first
         Account baseAccount = new Account();
-        baseAccount.setIdClient(idClient);
+        baseAccount.setClientId(idClient);
         baseAccount.setBalance(initialDeposit);
         baseAccount.setType("SAVINGS");
-        baseAccount = accountDAO.create(baseAccount);
+        baseAccount.setRib(RIBGenerator.generateRIB());  // Generate a unique RIB
+        accountDAO.create(baseAccount);
+        
+        // Get the created account's ID
+        int accountId = baseAccount.getId();
+        if (accountId == 0) {
+            throw new SQLException("Failed to create base account");
+        }
 
         // Create saving account
         SavingAccount savingAccount = new SavingAccount();
-        savingAccount.setIdSavingAccount(baseAccount.getIdAccount());
-        savingAccount.setIdAccount(baseAccount.getIdAccount());
+        savingAccount.setIdSavingAccount(accountId);
+        savingAccount.setIdAccount(accountId);
         savingAccount.setInterestRate(interestRate);
         savingAccount.setLastInterestCalcDate(new Date());
         savingAccount.setBaseAccount(baseAccount);
@@ -38,77 +59,120 @@ public class SavingAccountService {
         return savingAccountDAO.create(savingAccount);
     }
 
-    public boolean deleteSavingAccount(int savingAccountId) {
+    public boolean deleteSavingAccount(int savingAccountId) throws SQLException {
         return savingAccountDAO.delete(savingAccountId);
     }
 
-    public boolean deposit(int savingAccountId, double amount) {
+    public boolean deposit(int savingAccountId, BigDecimal amount) throws SQLException {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Deposit amount must be positive");
+        }
+
         SavingAccount sa = savingAccountDAO.findById(savingAccountId);
         if (sa == null) return false;
-        Account acc = accountDAO.findById(sa.getAccountId());
-        if (acc == null) return false;
-        acc.deposit(amount);
-        return accountDAO.update(acc);
+
+        var accOpt = accountDAO.findById(sa.getIdAccount());
+        if (accOpt.isEmpty()) return false;
+        Account acc = accOpt.get();
+
+        acc.setBalance(acc.getBalance().add(amount));
+        accountDAO.update(acc);
+        return true;
     }
 
-    public boolean withdraw(int savingAccountId, double amount) {
+    public boolean withdraw(int savingAccountId, BigDecimal amount) throws SQLException {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be positive");
+        }
+
         SavingAccount sa = savingAccountDAO.findById(savingAccountId);
         if (sa == null) return false;
-        Account acc = accountDAO.findById(sa.getAccountId());
-        if (acc == null) return false;
-        if (acc.getBalance() < amount) return false;
-        acc.withdraw(amount);
-        return accountDAO.update(acc);
+
+        var accOpt = accountDAO.findById(sa.getIdAccount());
+        if (accOpt.isEmpty()) return false;
+        Account acc = accOpt.get();
+
+        if (acc.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient funds");
+        }
+
+        acc.setBalance(acc.getBalance().subtract(amount));
+        accountDAO.update(acc);
+        return true;
     }
 
-    public boolean transfer(int fromSavingAccountId, int toAccountId, double amount) {
+    public boolean transfer(int fromSavingAccountId, int toAccountId, BigDecimal amount) throws SQLException {
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Transfer amount must be positive");
+        }
+
         SavingAccount sa = savingAccountDAO.findById(fromSavingAccountId);
         if (sa == null) return false;
-        Account from = accountDAO.findById(sa.getAccountId());
-        Account to = accountDAO.findById(toAccountId);
-        if (from == null || to == null) return false;
-        if (from.getBalance() < amount) return false;
-        from.withdraw(amount);
-        to.deposit(amount);
-        return accountDAO.update(from) && accountDAO.update(to);
+
+        var fromOpt = accountDAO.findById(sa.getIdAccount());
+        var toOpt = accountDAO.findById(toAccountId);
+        if (fromOpt.isEmpty() || toOpt.isEmpty()) return false;
+        
+        Account from = fromOpt.get();
+        Account to = toOpt.get();
+
+        if (from.getBalance().compareTo(amount) < 0) {
+            throw new IllegalStateException("Insufficient funds for transfer");
+        }
+
+        from.setBalance(from.getBalance().subtract(amount));
+        to.setBalance(to.getBalance().add(amount));
+
+        accountDAO.update(from);
+        accountDAO.update(to);
+        return true;
     }
 
-    public boolean applyInterest(int savingAccountId) {
+    public boolean applyInterest(int savingAccountId) throws SQLException {
         SavingAccount sa = savingAccountDAO.findById(savingAccountId);
         if (sa == null) return false;
-        Account acc = accountDAO.findById(sa.getAccountId());
-        if (acc == null) return false;
-        double interest = acc.getBalance() * sa.getInterest();
+        
+        var accOpt = accountDAO.findById(sa.getIdAccount());
+        if (accOpt.isEmpty()) return false;
+        Account acc = accOpt.get();
+        
+        BigDecimal interest = acc.getBalance().multiply(sa.getInterestRate());
         acc.deposit(interest);
         sa.setLastInterestCalcDate(new Date());
-        return accountDAO.update(acc) && savingAccountDAO.update(sa);
+        
+        try {
+            accountDAO.update(acc);
+            savingAccountDAO.update(sa);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public SavingAccount getSavingAccount(int idSavingAccount) throws SQLException {
         return savingAccountDAO.findById(idSavingAccount);
     }
 
-    public List<SavingAccount> getSavingAccountsByClientId(int clientId) {
-        List<Account> accounts = accountDAO.findByClientId(clientId);
-        List<SavingAccount> result = new java.util.ArrayList<>();
-        for (Account acc : accounts) {
-            SavingAccount sa = savingAccountDAO.findByAccountId(acc.getId());
-            if (sa != null) result.add(sa);
+    public List<SavingAccount> getSavingAccountsByClientId(int clientId) throws SQLException {
+        return savingAccountDAO.findByClientId(clientId);
+    }
+
+    public boolean updateInterestRate(int savingAccountId, BigDecimal newRate) throws SQLException {
+        if (newRate.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Interest rate cannot be negative");
         }
-        return result;
+        try {
+            savingAccountDAO.updateInterestRate(savingAccountId, newRate);
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
-    public boolean updateInterestRate(int savingAccountId, double newInterest) {
-        SavingAccount sa = savingAccountDAO.findById(savingAccountId);
-        if (sa == null) return false;
-        sa.setInterest(newInterest);
-        return savingAccountDAO.update(sa);
-    }
-
-    public void applyInterestToAll() {
-        List<SavingAccount> all = savingAccountDAO.findAll();
-        for (SavingAccount sa : all) {
-            applyInterest(sa.getSavingAccountId());
+    public void applyInterestToAll() throws SQLException {
+        List<SavingAccount> accounts = savingAccountDAO.findByClientId(-1); // Get all accounts
+        for (SavingAccount sa : accounts) {
+            applyInterest(sa.getIdSavingAccount());
         }
     }
 
@@ -122,10 +186,12 @@ public class SavingAccountService {
             throw new IllegalArgumentException("Saving account not found");
         }
 
-        Account baseAccount = accountDAO.findById(savingAccount.getIdAccount());
-        if (baseAccount == null) {
+        // Get base account and handle Optional properly
+        var baseAccountOpt = accountDAO.findById(savingAccount.getIdAccount());
+        if (baseAccountOpt.isEmpty()) {
             throw new IllegalArgumentException("Base account not found");
         }
+        Account baseAccount = baseAccountOpt.get();
 
         // Calculate days since last interest calculation
         Date now = new Date();
@@ -150,36 +216,25 @@ public class SavingAccountService {
         }
     }
 
-    public void updateInterestRate(int idSavingAccount, BigDecimal newRate) throws SQLException {
-        if (newRate.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Interest rate cannot be negative");
-        }
-        savingAccountDAO.updateInterestRate(idSavingAccount, newRate.doubleValue());
-    }
-
-    public boolean closeSavingAccount(int idSavingAccount) throws SQLException {
-        SavingAccount savingAccount = savingAccountDAO.findById(idSavingAccount);
+    public void closeSavingAccount(int savingAccountId) throws SQLException {
+        SavingAccount savingAccount = savingAccountDAO.findById(savingAccountId);
         if (savingAccount == null) {
-            return false;
+            throw new IllegalArgumentException("Saving account not found");
         }
 
-        // Calculate and apply any remaining interest
-        calculateAndApplyInterest(idSavingAccount);
-
-        // Delete the saving account
-        boolean savingAccountDeleted = savingAccountDAO.delete(idSavingAccount);
-        if (!savingAccountDeleted) {
-            return false;
+        // Get base account and handle Optional properly
+        var baseAccountOpt = accountDAO.findById(savingAccount.getIdAccount());
+        if (baseAccountOpt.isEmpty()) {
+            throw new IllegalArgumentException("Base account not found");
         }
+        Account baseAccount = baseAccountOpt.get();
 
         // Mark the base account as deleted
-        Account baseAccount = accountDAO.findById(savingAccount.getIdAccount());
-        if (baseAccount != null) {
-            baseAccount.setDeleted(true);
-            baseAccount.setDeletedAt(new Date());
-            accountDAO.update(baseAccount);
-        }
+        baseAccount.setDeleted(true);
+        accountDAO.update(baseAccount);
 
-        return true;
+        // Update the saving account's last calculation date to mark it as inactive
+        savingAccount.setLastInterestCalcDate(new Date());
+        savingAccountDAO.update(savingAccount);
     }
 }
