@@ -1,6 +1,6 @@
 # Cashaura Banking Application
 
-**Cashaura** is a modern desktop banking application built with Java and Swing. It allows users to manage accounts, perform transactions, and handle beneficiaries through a clean and intuitive interface.
+**Cashaura** is a modern desktop banking application built with **Java** and **Swing**. It allows users to manage accounts, perform transactions, and handle beneficiaries through a clean and intuitive interface.
 
 ## 🚀 Features
 
@@ -9,12 +9,13 @@
 * 💸 Transaction operations (deposit, withdraw, transfer)
 * 👥 Beneficiary management
 * 💰 Savings account support
-* 🖥️ Modern, minimalistic Swing-based UI
+* 🖥️ Minimalistic, responsive Swing-based UI
 
 ## 📦 Prerequisites
 
 * **Java 11** or higher
 * **MySQL 8.0+**
+* A Java IDE (like IntelliJ IDEA or Eclipse) or `javac` CLI
 
 ## ⚙️ Setup Instructions
 
@@ -31,26 +32,32 @@
    CREATE DATABASE cashaura;
    ```
 
-3. **Import the database schema**
+3. **Import the schema**
 
    ```bash
    mysql -u root -p cashaura < database/schema.sql
    ```
 
 4. **Configure database connection**
-   Edit `src/resources/database.properties` with your MySQL username and password.
 
-5. **Build the project**
+   Edit the file:
 
-   ```bash
-   mvn clean package
+   ```
+   src/resources/database.properties
    ```
 
-6. **Run the application**
+   Replace the default values with your MySQL `username` and `password`.
+
+5. **Compile and Run the Application**
+
+   From the root directory:
 
    ```bash
-   java -jar target/cashaura-1.0-SNAPSHOT-jar-with-dependencies.jar
+   javac -cp "lib/mysql-connector-java-8.0.xx.jar" -d bin src/**/*.java
+   java -cp "bin:lib/mysql-connector-java-8.0.xx.jar" Main
    ```
+
+   > ☝️ Replace `8.0.xx` with your version of the MySQL JDBC connector.
 
 ## 🧩 Project Structure
 
@@ -66,18 +73,10 @@ src/
 
 ## 🔧 Development Notes
 
-* Built with **Maven**
-* Uses **HikariCP** for efficient connection pooling
-* Follows **MVC architecture**
-* Includes unit testing with **JUnit** and **Mockito**
-
-## ✅ Running Tests
-
-To run all unit tests:
-
-```bash
-mvn test
-```
+* Built using **native Java** (no external frameworks)
+* Follows the **MVC architecture** for better code organization
+* Uses **JDBC** for direct MySQL interaction
+* UI entirely built using **Swing**
 
 ## 🤝 Contributing
 
@@ -85,10 +84,10 @@ Contributions are welcome!
 To contribute:
 
 1. Fork the repository
-2. Create a new feature branch (`git checkout -b feature-name`)
+2. Create a new branch (`git checkout -b feature-name`)
 3. Commit your changes (`git commit -m 'Add feature'`)
-4. Push to the branch (`git push origin feature-name`)
-5. Create a Pull Request
+4. Push your branch (`git push origin feature-name`)
+5. Open a Pull Request
 
 ## 📄 License
 
